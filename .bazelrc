@@ -1,0 +1,1 @@
+build --worker_sandboxing --sandbox_debug --verbose_failures

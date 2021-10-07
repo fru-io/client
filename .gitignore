@@ -1,0 +1,7 @@
+node_modules
+dist
+cli
+cmd
+fru
+*.sql.gz
+*.tar.gz

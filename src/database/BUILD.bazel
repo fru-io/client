@@ -1,0 +1,25 @@
+package(default_visibility = ["//visibility:public"])
+
+load("@npm//@bazel/typescript:index.bzl", "ts_library")
+
+filegroup(
+    name = "ts_files",
+    srcs = glob([
+        "*.ts",
+        "*.tsx",
+    ]),
+)
+
+ts_library(
+    name = "lib",
+    srcs = [":ts_files"],
+    tags = ["build-target"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/database/backup:lib",
+        "//src/database/pull:lib",
+        "//src/database/push:lib",
+        "//src/database/restore:lib",
+        "@npm//:node_modules",
+    ],
+)
