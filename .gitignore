@@ -3,5 +3,7 @@ dist
 cli
 cmd
 fru
-*.sql.gz
+
+**/*.jsx
 *.tar.gz
+*.sql.gz

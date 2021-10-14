@@ -1,23 +1,24 @@
 import React, {FC, useEffect, useState} from 'react';
 import {Box, Text, useStdout} from 'ink';
-import { GetSitesClient } from '../../internal/config/config';
+import { SetDefaultWorkspaceRequest, SetDefaultWorkspaceResponse } from '@fru-io/fru-apis/live/administration/v1alpha1/workspace_pb';
+import { GetAdminClient } from '../../internal/config/config';
 import * as grpc from '@grpc/grpc-js'
-import { BackupDatabaseRequest, BackupDatabaseResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/database_pb';
 
-const client = GetSitesClient()
+const client = GetAdminClient()
 
 interface Props {
-	req: BackupDatabaseRequest
+	req: SetDefaultWorkspaceRequest
 	meta: grpc.Metadata
 }
 
 export const DefaultComponent: FC<Props> = (props) => {
-	const [resp, setResp] = useState<BackupDatabaseResponse>()
+
+	const [resp, setResp] = useState<SetDefaultWorkspaceResponse>()
 	const [err, setError] = useState<grpc.ServiceError>()
 	useEffect(() => {
 		// Create an scoped async function in the hook
 		async function init() {
-			client.backupDatabase(props.req, props.meta, (error: grpc.ServiceError | null, value?: BackupDatabaseResponse) => {
+			client.setDefaultWorkspace(props.req, props.meta, (error: grpc.ServiceError | null, value?: SetDefaultWorkspaceResponse) => {
 				if (error) {
 					setError(error)
 				}
@@ -35,12 +36,10 @@ export const DefaultComponent: FC<Props> = (props) => {
 			</Box>
 		)
 	  }
-	  if (resp) {
+	  if (resp && resp.getWorkspace()) {
 		  return (
 			  <Box>
-				  {
-					<Box paddingLeft={2} paddingRight={2} key={resp.getBackup().getName()}><Text color="white">Name: </Text><Text color="green">{resp.getBackup().getName()}</Text></Box>
-				  }
+			  <Box><Text color="white">Selected Workspace: </Text><Text color="green">{resp.getWorkspace().getSubscription()}.{resp.getWorkspace().getName()}</Text></Box>
 			  </Box>
 		  )
 	  } 
@@ -53,12 +52,12 @@ export const DefaultComponent: FC<Props> = (props) => {
 
 export const JSONComponent: FC<Props> = (props) => {
 	const {write} = useStdout();
-	const [resp, setResp] = useState<BackupDatabaseResponse>()
+	const [resp, setResp] = useState<SetDefaultWorkspaceResponse>()
 	const [err, setError] = useState<grpc.ServiceError>()
 	useEffect(() => {
 		// Create an scoped async function in the hook
 		async function init() {
-			client.backupDatabase(props.req, props.meta, (error: grpc.ServiceError | null, value?: BackupDatabaseResponse) => {
+			client.setDefaultWorkspace(props.req, props.meta, (error: grpc.ServiceError | null, value?: SetDefaultWorkspaceResponse) => {
 				if (error) {
 					setError(error)
 				}
@@ -73,7 +72,7 @@ export const JSONComponent: FC<Props> = (props) => {
 		write(JSON.stringify(err))
 		return null
 	  }
-	  if (resp) {
+	  if (resp && resp.getWorkspace()) {
 		write(JSON.stringify(resp.toObject()))
 		return null
 	  } 

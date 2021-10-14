@@ -3,17 +3,15 @@ import React from 'react';
 import {render} from 'ink';
 import * as program from 'commander';
 import { DatabaseC } from './ui';
-import { SitesClient } from '@fru-io/fru-apis/live/sites/v1alpha1/service_grpc_pb'
 import * as grpc from '@grpc/grpc-js'
-import * as depGrpc from 'grpc'
-
-const creds = grpc.ChannelCredentials.createInsecure()
-const client = new SitesClient('localhost:8080',creds as grpc.ChannelCredentials)
-
 import fs from 'fs'
 
+import { SitesClient } from '@fru-io/fru-apis/live/sites/v1alpha1/service_grpc_pb'
 import { refreshToken } from '../../auth/cli';
 import { DatabaseBackup, DatabaseBackupMetadata, PushDatabaseBackupRequest, PushDatabaseBackupResponse, RestoreDatabaseRequest, RestoreDatabaseResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/database_pb';
+import { GetSitesClient } from '../../internal/config/config';
+
+const client = GetSitesClient()
 
 const push = new program.Command('push <name> <site> <path>')
   .command('push <name> <site> <path>')
@@ -23,7 +21,7 @@ const push = new program.Command('push <name> <site> <path>')
     const token = await refreshToken()
     const meta = new grpc.Metadata
     meta.add('X-Auth-Token', token)
-    const stream : depGrpc.ClientWritableStream<PushDatabaseBackupRequest> = client.pushDatabaseBackupStream(meta, (error: depGrpc.ServiceError | null, response?: PushDatabaseBackupResponse) => {
+    const stream : grpc.ClientWritableStream<PushDatabaseBackupRequest> = client.pushDatabaseBackupStream(meta, (error: grpc.ServiceError | null, response?: PushDatabaseBackupResponse) => {
       console.log({
         response,
         error,
@@ -32,7 +30,7 @@ const push = new program.Command('push <name> <site> <path>')
         const restoreReq = new RestoreDatabaseRequest()
         restoreReq.setSite(site)
         restoreReq.setBackup(response.getBackup())
-        client.restoreDatabase(restoreReq, meta, (error: depGrpc.ServiceError | null, response?: RestoreDatabaseResponse) => {
+        client.restoreDatabase(restoreReq, meta, (error: grpc.ServiceError | null, response?: RestoreDatabaseResponse) => {
           if ( error ) {
             console.log(error.message)
             process.exit(1)

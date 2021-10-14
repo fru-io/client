@@ -8,19 +8,14 @@ import { AdministrationClient } from '@fru-io/fru-apis/live/administration/v1alp
 
 import * as grpc from '@grpc/grpc-js'
 
-import * as depGrpc from 'grpc'
 import { CreateTokenRequest, CreateTokenResponse } from '@fru-io/fru-apis/live/administration/v1alpha1/auth_pb'
 
 import os from 'os'
 import fs from 'fs'
 import path from 'path'
+import { GetAdminClient } from '../internal/config/config';
 
-const creds = grpc.ChannelCredentials.createInsecure()
-let host:string = "localhost:8080"
-if (process.env.API_HOST) {
-    host = process.env.API_HOST
-}
-const client = new AdministrationClient(host, creds)
+const client = GetAdminClient()
 
 const getconfig = (): string => {
 
@@ -41,25 +36,15 @@ interface authConfig {
 
 const storeConfig = (c: authConfig) => {
     const config = getconfig()
-    console.log("wrote " + config)
+    // console.log("wrote " + config)
     fs.writeFileSync(config, JSON.stringify(c))
 }
 
 const promiseToken = async (req: CreateTokenRequest): Promise<CreateTokenResponse> => {
     return new Promise<CreateTokenResponse>((resolve, reject)  => {
-        // client.createToken(req, null, (err: any, response: CreateTokenResponse) => {
-        //     if (err) {
-        //         console.log({
-        //            err,
-        //         })
-        //         reject(err)
-        //     }
-        //     if ( response ) {
-        //         resolve(response)
-        //     }
-        // })
-        client.createToken(req, (error: depGrpc.ServiceError | null, response?: CreateTokenResponse): void => {
+        client.createToken(req, (error: grpc.ServiceError | null, response?: CreateTokenResponse): void => {
             if (error) {
+                // FIXME: Render
                 console.log({
                    error,
                 })

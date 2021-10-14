@@ -1,21 +1,16 @@
 #!/usr/bin/env node
 import * as program from 'commander';
-import { SitesClient } from '@fru-io/fru-apis/live/sites/v1alpha1/service_grpc_pb'
-// import { CreateTokenRequest, CreateTokenResponse } from '@fru-io/fru-apis/live/administration/v1alpha1/auth_pb'
-import { File, PullFileBackupRequest, PullFileBackupResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/file_pb';
-
 import * as grpc from '@grpc/grpc-js'
-
-const creds = grpc.ChannelCredentials.createInsecure()
-const client = new SitesClient('localhost:8080', creds as grpc.ChannelCredentials )
-
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-
 import { v4 as uuidv4 } from 'uuid';
 
+import { File, PullFileBackupRequest, PullFileBackupResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/file_pb';
 import { refreshToken } from '../../auth/cli';
+import { GetSitesClient } from '../../internal/config/config';
+
+const client = GetSitesClient()
 
 const getFiles = (file: string, origin?: string): string[] => {
 
@@ -46,9 +41,8 @@ const pull = new program.Command('pull <site> <path> <dest>')
 
     // Manually refresh the token
     const token = await refreshToken()
-    const meta = {
-      'X-Auth-Token': token
-    }
+    const meta = new grpc.Metadata()
+    meta.add('X-Auth-Token', token)
 
     const req = new PullFileBackupRequest()
     req.setSite(site)

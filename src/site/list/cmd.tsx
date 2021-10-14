@@ -1,19 +1,13 @@
 #!/usr/bin/env node
 import * as program from 'commander';
 // import App from './ui';
-import { SitesClient } from '@fru-io/fru-apis/live/sites/v1alpha1/service_grpc_pb'
-
 import * as grpc from '@grpc/grpc-js'
-import * as depGrpc from 'grpc'
+
 import { refreshToken } from '../../auth/cli';
 import { ListSiteRequest, ListSiteResponse, Site, SiteType } from '@fru-io/fru-apis/live/sites/v1alpha1/site_pb';
+import { GetSitesClient } from '../../internal/config/config';
 
-const creds = grpc.ChannelCredentials.createInsecure()
-let host:string = "localhost:8080"
-if (process.env.API_HOST) {
-    host = process.env.API_HOST
-}
-const client = new SitesClient(host, creds)
+const client = GetSitesClient()
 
 const list = new program.Command('list')
   .command('list')
@@ -24,12 +18,11 @@ const list = new program.Command('list')
     const meta = new grpc.Metadata
     meta.add('X-Auth-Token', token)
 
-    const reqPromise = new Promise<boolean>( (resolve, reject) => {
+    const reqPromise = new Promise<void>( (resolve, reject) => {
       const req = new ListSiteRequest()
-      client.listSites(new ListSiteRequest(), meta, (error: depGrpc.ServiceError | null, response?: ListSiteResponse) => {
+      client.listSites(new ListSiteRequest(), meta, (error: grpc.ServiceError | null, response?: ListSiteResponse) => {
         if (error) {
-          console.log(error)
-          reject(false)
+          reject(error)
         }
         response.getSitesList().forEach( (site: Site) => {
           let type = "unknown"
@@ -46,6 +39,7 @@ const list = new program.Command('list')
             filestore_ready: site.getStatus().getFilestore(),
             server_ready: site.getStatus().getServer(),
           })
+          resolve()
         })
       })
     })

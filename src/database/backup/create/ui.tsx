@@ -1,6 +1,6 @@
 import React, {FC, useEffect, useState} from 'react';
 import {Box, Text, useStdout} from 'ink';
-import { GetSitesClient } from '../../internal/config/config';
+import { GetSitesClient } from '../../../internal/config/config';
 import * as grpc from '@grpc/grpc-js'
 import { BackupDatabaseRequest, BackupDatabaseResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/database_pb';
 

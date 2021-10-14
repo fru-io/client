@@ -1,23 +1,23 @@
 import React, {FC, useEffect, useState} from 'react';
 import {Box, Text, useStdout} from 'ink';
-import { GetSitesClient } from '../../internal/config/config';
+import { ListWorkspaceRequest, ListWorkspaceResponse, Workspace } from '@fru-io/fru-apis/live/administration/v1alpha1/workspace_pb';
+import { GetAdminClient } from '../../internal/config/config';
 import * as grpc from '@grpc/grpc-js'
-import { DescribeFileBackupRequest, DescribeFileBackupResponse, File } from '@fru-io/fru-apis/live/sites/v1alpha1/file_pb';
 
-const client = GetSitesClient()
+const client = GetAdminClient()
 
 interface Props {
-	req: DescribeFileBackupRequest
+	req: ListWorkspaceRequest
 	meta: grpc.Metadata
 }
 
 export const DefaultComponent: FC<Props> = (props) => {
-	const [resp, setResp] = useState<DescribeFileBackupResponse>()
+	const [resp, setResp] = useState<ListWorkspaceResponse>()
 	const [err, setError] = useState<grpc.ServiceError>()
 	useEffect(() => {
 		// Create an scoped async function in the hook
 		async function init() {
-			client.describeFileBackup(props.req, props.meta, (error: grpc.ServiceError | null, value?: DescribeFileBackupResponse) => {
+			client.listWorkspaces(props.req, props.meta, (error: grpc.ServiceError | null, value?: ListWorkspaceResponse) => {
 				if (error) {
 					setError(error)
 				}
@@ -39,10 +39,18 @@ export const DefaultComponent: FC<Props> = (props) => {
 		  return (
 			  <Box>
 				  {
-					resp.getMetadataList().map( (f:File, index:number) => (
+					resp.getWorkspacesList().map( (ws:Workspace, index:number) => (
 						<Box key={index} borderStyle="round" flexDirection="column">
-							<Box paddingLeft={2} paddingRight={2} key={f.getPath()}><Text color="white">Path: </Text><Text color="green">{f.getPath()}</Text></Box>
-							<Box paddingLeft={2} paddingRight={2} key={f.getMd5()}><Text color="white">Name: </Text><Text color="green">{f.getMd5()}</Text></Box>
+							<Box paddingLeft={2} paddingRight={2} key={ws.getSubscription()}><Text color="white">Subscription: </Text><Text color="green">{ws.getSubscription()}</Text></Box>
+							<Box paddingLeft={2} paddingRight={2} key={ws.getName()}><Text color="white">Name: </Text><Text color="green">{ws.getName()}</Text></Box>
+							<Box paddingLeft={2} flexDirection="column" key="admins"><Text color="white">Admins: </Text>
+							{
+								ws.getAdminsList().map( (admin:string, index:number) => (
+									<Box paddingLeft={4} paddingRight={2} key={index}><Text color="green">- {admin}</Text></Box>
+									)
+								)
+							}
+							</Box>
 						</Box>
 					))
 				  }
@@ -58,12 +66,12 @@ export const DefaultComponent: FC<Props> = (props) => {
 
 export const JSONComponent: FC<Props> = (props) => {
 	const {write} = useStdout();
-	const [resp, setResp] = useState<DescribeFileBackupResponse>()
+	const [resp, setResp] = useState<ListWorkspaceResponse>()
 	const [err, setError] = useState<grpc.ServiceError>()
 	useEffect(() => {
 		// Create an scoped async function in the hook
 		async function init() {
-			client.describeFileBackup(props.req, props.meta, (error: grpc.ServiceError | null, value?: DescribeFileBackupResponse) => {
+			client.listWorkspaces(props.req, props.meta, (error: grpc.ServiceError | null, value?: ListWorkspaceResponse) => {
 				if (error) {
 					setError(error)
 				}

@@ -3,21 +3,17 @@ import React from 'react';
 import {render} from 'ink';
 import * as program from 'commander';
 import { FileC } from './ui';
-import { SitesClient } from '@fru-io/fru-apis/live/sites/v1alpha1/service_grpc_pb'
 import * as grpc from '@grpc/grpc-js'
-import * as depGrpc from 'grpc'
-// import { CreateTokenRequest, CreateTokenResponse } from '@fru-io/fru-apis/live/administration/v1alpha1/auth_pb'
-import { File, PushFileBackupRequest, PushFileBackupResponse, RestoreFilesRequest, RestoreFilesResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/file_pb';
-
-const creds = grpc.ChannelCredentials.createInsecure()
-const client = new SitesClient('localhost:8080',creds as grpc.ChannelCredentials)
-
 import fs from 'fs'
 import path from 'path'
+import { File, PushFileBackupRequest, PushFileBackupResponse, RestoreFilesRequest, RestoreFilesResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/file_pb';
 
 import { refreshToken } from '../../auth/cli';
+import { GetSitesClient } from '../../internal/config/config';
 
-const writeFile = async (stream : depGrpc.ClientWritableStream<PushFileBackupRequest>, req: PushFileBackupRequest): Promise<PushFileBackupRequest> => {
+const client = GetSitesClient()
+
+const writeFile = async (stream : grpc.ClientWritableStream<PushFileBackupRequest>, req: PushFileBackupRequest): Promise<PushFileBackupRequest> => {
   return new Promise( (resolve) => {
     stream.write(req, () => {
       // TODO: Replace with render call
@@ -32,7 +28,7 @@ const writeFile = async (stream : depGrpc.ClientWritableStream<PushFileBackupReq
   })
 }
 
-const writeFiles = (stream: depGrpc.ClientWritableStream<PushFileBackupRequest>, origin: string, files: string[], site: string, dest: string): Promise<PushFileBackupRequest[]> => {
+const writeFiles = (stream: grpc.ClientWritableStream<PushFileBackupRequest>, origin: string, files: string[], site: string, dest: string): Promise<PushFileBackupRequest[]> => {
   let promises: Promise<PushFileBackupRequest>[] = []
 
   files.forEach( (file: string) => {
@@ -87,7 +83,7 @@ const push = new program.Command('push <site> <path> <dest>')
     const meta = new grpc.Metadata
     meta.add('X-Auth-Token', token)
     let backupName: string | undefined = "" 
-    const stream : depGrpc.ClientWritableStream<PushFileBackupRequest> = client.pushFileBackupStream(meta, (error: depGrpc.ServiceError | null, response?: PushFileBackupResponse) => {
+    const stream : grpc.ClientWritableStream<PushFileBackupRequest> = client.pushFileBackupStream(meta, (error: grpc.ServiceError | null, response?: PushFileBackupResponse) => {
       console.log({
         response,
         error,
@@ -108,7 +104,7 @@ const push = new program.Command('push <site> <path> <dest>')
       // Restore the files
       const req = new RestoreFilesRequest()
       req.setSite(site)
-      client.restoreFiles(req, meta, (error: depGrpc.ServiceError | null, response?: RestoreFilesResponse) => {
+      client.restoreFiles(req, meta, (error: grpc.ServiceError | null, response?: RestoreFilesResponse) => {
         if ( error ) {
           console.log(error.message)
           process.exit(1)
