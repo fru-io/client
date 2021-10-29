@@ -6,47 +6,33 @@ import * as grpc from '@grpc/grpc-js'
 import { refreshToken } from '../../auth/cli';
 import { ListSiteRequest, ListSiteResponse, Site, SiteType } from '@fru-io/fru-apis/live/sites/v1alpha1/site_pb';
 import { GetSitesClient } from '../../internal/config/config';
+import React from 'react';
+import {render} from 'ink';
+import {DefaultComponent, JSONComponent} from './ui'
 
 const client = GetSitesClient()
 
+const format = new program.Option("--json", "format output to json")
 const list = new program.Command('list')
   .command('list')
+  .addOption(format)
   .description('list sites')
-  .action( async () => {
+  .action( async (args: any) => {
 
     const token = await refreshToken()
     const meta = new grpc.Metadata
     meta.add('X-Auth-Token', token)
 
-    const reqPromise = new Promise<void>( (resolve, reject) => {
-      const req = new ListSiteRequest()
-      client.listSites(new ListSiteRequest(), meta, (error: grpc.ServiceError | null, response?: ListSiteResponse) => {
-        if (error) {
-          reject(error)
-        }
-        response.getSitesList().forEach( (site: Site) => {
-          let type = "unknown"
-          if (site.getType() == SiteType.DRUPAL) {
-            type = "Drupal"
-          } else if ( site.getType() == SiteType.WORDPRESS) {
-            type = "Wordpress"
-          }
-          console.log({
-            workspace: site.getWorkspace(),
-            name: site.getName(),
-            type: type,
-            database_ready: site.getStatus().getDatabase(),
-            filestore_ready: site.getStatus().getFilestore(),
-            server_ready: site.getStatus().getServer(),
-          })
-          resolve()
-        })
-      })
-    })
-    try {
-      await reqPromise
-    } catch ( e ) {
-      console.log({e})
+    const listSiteRequest = new ListSiteRequest()
+
+    if ( args.json ) {
+      render(
+        <JSONComponent req={listSiteRequest} meta={meta}></JSONComponent>
+      )
+    } else {
+      render(
+        <DefaultComponent req={listSiteRequest} meta={meta}></DefaultComponent>
+      )
     }
   })
 
