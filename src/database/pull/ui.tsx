@@ -1,19 +1,14 @@
 import React, {FC, useEffect, useState} from 'react';
 import {Box, Text, useStdout} from 'ink';
 import { ListWorkspaceRequest, ListWorkspaceResponse, Workspace } from '@fru-io/fru-apis/live/administration/v1alpha1/workspace_pb';
-import { GetConfig } from '../../internal/config/config';
+import { GetConfig, GetSitesClient } from '../../internal/config/config';
 import * as grpc from '@grpc/grpc-js'
 import { DatabaseBackup, DatabaseBackupMetadata, DatabaseBackupMetadataRequest, PullDatabaseBackupRequest, PullDatabaseBackupResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/database_pb';
 import { SitesClient } from '@fru-io/fru-apis/live/sites/v1alpha1/service_grpc_pb';
 
 import fs from 'fs'
 
-const creds = grpc.ChannelCredentials.createInsecure()
-let host:string = GetConfig().host
-if (process.env.API_HOST) {
-    host = process.env.API_HOST
-}
-const client = new SitesClient(host, creds)
+const client = GetSitesClient()
 
 interface Props {
 	metaReq: DatabaseBackupMetadataRequest

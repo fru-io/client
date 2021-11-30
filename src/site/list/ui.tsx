@@ -47,11 +47,11 @@ export const DefaultComponent: FC<Props> = (props) => {
 							<Box paddingLeft={2} paddingRight={2} key={site.getGit().getRef()}><Text color="white">Reference: </Text><Text color="green">{site.getGit().getRef()}</Text></Box>
 							<Box paddingLeft={2} paddingRight={2} key={site.getCreationtime()}><Text color="white">Created: </Text><Text color="green">{site.getCreationtime()}</Text></Box>
 							<Box paddingLeft={2} paddingRight={2} key={site.getPhpversion()}><Text color="white">PHP Version: </Text><Text color="green">{site.getPhpversion()}</Text></Box>
-							<Box paddingLeft={2} paddingRight={2} key={site.getDocroot()}><Text color="white">Docroot: </Text><Text color="green">{site.getDocroot()}</Text></Box>
+							<Box paddingLeft={2} paddingRight={2} key="DocRootHead"><Text color="white">Docroot: </Text><Text color="green">{site.getDocroot()}</Text></Box>
 							{
 								site.getComposerinstall() ?
 								    <>
-									<Box paddingLeft={2} paddingRight={2} key={site.getDocroot()}><Text color="white">Composer: </Text></Box>
+									<Box paddingLeft={2} paddingRight={2} key="ComposerHead"><Text color="white">Composer: </Text></Box>
 									{
 										site.getComposerargsList().map( (arg:string, index:number) => (
 											<Box paddingLeft={4} paddingRight={2} key={index}><Text color="green">- {arg}</Text></Box>
@@ -62,7 +62,7 @@ export const DefaultComponent: FC<Props> = (props) => {
 									: 
 									<></>
 							}
-							<Box paddingLeft={2} paddingRight={2} key={site.getDocroot()}><Text color="white">URL's: </Text></Box>
+							<Box paddingLeft={2} paddingRight={2} key="URLsHead"><Text color="white">URL's: </Text></Box>
 							{
 								site.getUrlsList().map( (url:string, index:number) => (
 									<Box paddingLeft={4} paddingRight={2} key={index}><Text color="green">- {url}</Text></Box>
