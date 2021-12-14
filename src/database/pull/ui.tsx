@@ -37,14 +37,18 @@ export const DefaultComponent: FC<Props> = (props) => {
 				  resolve(value)
 				})
 			})
-			const meta = await metadataPromise
+			try {
+				const meta = await metadataPromise
 
-			const stream = client.pullDatabaseBackupStream(props.req, props.meta)
-
-			setState({
-				metadata: meta,
-				stream: stream,
-			})
+				const stream = client.pullDatabaseBackupStream(props.req, props.meta)
+	
+				setState({
+					metadata: meta,
+					stream: stream,
+				})
+			} catch (e) {
+				setError(e)
+			}
 		}
 		// Execute the created function directly
 		init();

@@ -7,7 +7,7 @@
 		"node": ">=12 <15"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc --downlevelIteration",
 		"package": "nexe dist/index.js --build",
 		"start": "yarn run build && chmod a+x ./dist/index.js && ./dist/index.js",
 		"pretest": "yarn run build"

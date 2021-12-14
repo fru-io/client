@@ -9,21 +9,21 @@ import { RestoreFilesRequest, RestoreFilesResponse } from '@fru-io/fru-apis/live
 
 const client = GetSitesClient()
 
-const restore = new program.Command('restore <site>')
-  .command('restore <site>')
+const restore = new program.Command('restore <name>')
+  .command('restore <name>')
   .description('restore files from a staging area')
-  .action( async (site: string) => {
+  .action( async (name: string) => {
 
     const token = await refreshToken()
     const meta = new grpc.Metadata
     meta.add('X-Auth-Token', token)
 
     console.log({
-      site,
+      name,
       meta,
     })
     const req = new RestoreFilesRequest()
-    req.setSite(site)
+    req.setName(name)
     const promiseResonse = new Promise<void>( (resolve) => {
       client.restoreFiles(req, meta, (error: grpc.ServiceError | null, response?: RestoreFilesResponse) => {
         if (response) {

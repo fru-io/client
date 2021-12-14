@@ -103,7 +103,7 @@ const push = new program.Command('push <site> <path> <dest>')
     if (backupName) {
       // Restore the files
       const req = new RestoreFilesRequest()
-      req.setSite(site)
+      req.setName(site)
       client.restoreFiles(req, meta, (error: grpc.ServiceError | null, response?: RestoreFilesResponse) => {
         if ( error ) {
           console.log(error.message)

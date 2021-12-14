@@ -1,91 +1,44 @@
 #!/usr/bin/env node
+// import React from 'react';
+// import {render} from 'ink';
 import * as program from 'commander';
 import * as grpc from '@grpc/grpc-js'
-import fs from 'fs'
-import path from 'path'
-import os from 'os'
-import { v4 as uuidv4 } from 'uuid';
-
-import { File, PullFileBackupRequest, PullFileBackupResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/file_pb';
+import { PullFileBackupRequest, PullFileBackupResponse } from '@fru-io/fru-apis/live/sites/v1alpha1/file_pb';
 import { refreshToken } from '../../auth/cli';
+import React from 'react';
+import {render} from 'ink';
+
 import { GetSitesClient } from '../../internal/config/config';
+import { DefaultComponent } from './ui';
 
 const client = GetSitesClient()
 
-const getFiles = (file: string, origin?: string): string[] => {
-
-  let fileList: string[] = []
-
-  if ( origin ) {
-    file = path.resolve(origin, file)
-  }
-  const stat = fs.statSync(file)
-  if (stat && stat.isDirectory()) {
-
-    const list = fs.readdirSync(file)
-
-    list.forEach( (dirFile: string) => {
-      fileList = fileList.concat(getFiles(dirFile, file))
-    })
-  } else {
-    fileList = fileList.concat(file)
-  }
-  
-  return fileList
-}
-
-const pull = new program.Command('pull <site> <path> <dest>')
-  .command('pull <site> <path> <dest>')
-  .description('retrieve one or more files')
+const pull = new program.Command('pull <name> <path>')
+  .command('pull <name> <path>')
+  .description('retrieve a database from a backup')
   .action( async (site: string, path: string, dest: string) => {
 
-    // Manually refresh the token
     const token = await refreshToken()
-    const meta = new grpc.Metadata()
+    const meta = new grpc.Metadata
     meta.add('X-Auth-Token', token)
+    
+    // Get the metadata for the total size
 
     const req = new PullFileBackupRequest()
     req.setSite(site)
+    req.setPathsList([path])
 
-    const stream = client.pullFileBackupStream(req, meta)
-    const id = uuidv4()
-    // A scratch area to write files to until the stream closes
-    const writeDir = path.concat(os.tmpdir(), "fru-", id)
-    console.log({
-      scratch: writeDir,
-    })
 
-    let promises: Promise<File>[] = []
-    stream.on('data', (response: PullFileBackupResponse) => {
-      console.log({
-        event: 'data',
-      })
-      promises = promises.concat(new Promise<File>( (resolve) => {
-        const f = response.getFile()
-        if (f) {
-          const writePath = path.concat(writeDir, f.getPath())
-  
-          const fd = fs.openSync(writePath, 'wa')
-          fs.appendFileSync(fd, f.getContent())
-          resolve(f)
-        }
-      }))
-    })
-    const serverClose = new Promise<boolean>( (resolve) => {
-      stream.on('close', async () => {
-        console.log({
-          event: 'close',
-        })
-        resolve(true)
-      })
-    })
-    await serverClose
-    await Promise.all(promises)
-    fs.rename(writeDir, dest, (err) => {
-      console.log({
-        "failed write": err,
-      })
-    })
+    // TODO: Support json, has to block until complete
+    // if ( args.json ) {
+    //   render(
+    //     <JSONComponent req={req} meta={meta}></JSONComponent>
+    //   )
+    // } else {
+    render(
+      <DefaultComponent req={req} meta={meta} writeDir={dest}></DefaultComponent>
+    )
+    // }
   })
 
 export default pull
